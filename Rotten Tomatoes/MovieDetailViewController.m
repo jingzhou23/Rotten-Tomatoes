@@ -15,6 +15,8 @@
 @property (weak, nonatomic) IBOutlet UIImageView *posterView;
 @property (weak, nonatomic) IBOutlet UILabel *synosisLabel;
 
+@property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
+
 @end
 
 @implementation MovieDetailViewController
@@ -37,10 +39,14 @@
     hud.mode = MBProgressHUDModeAnnularDeterminate;
     hud.labelText = @"Loading";
     
-    
+   
     self.titleLabel.text = self.movie[@"title"];
     
     self.synosisLabel.text = self.movie[@"synopsis"];
+    
+    self.scrollView.contentSize = CGSizeMake(320, 1000);
+    //self.scrollView.delegate = self;
+    
 
     NSString *url = [self.movie valueForKeyPath:@"posters.thumbnail"];
     
@@ -51,6 +57,11 @@
     [self.posterView setImageWithURL:[NSURL URLWithString: urlOri]];
     
     [MBProgressHUD hideHUDForView:self.view animated:YES];
+    
+    [self.scrollView addSubview:self.self.posterView];
+    [self.scrollView addSubview:self.titleLabel];
+     [self.scrollView addSubview:self.synosisLabel];
+
 
     
 }

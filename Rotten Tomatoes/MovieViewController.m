@@ -15,8 +15,8 @@
 @interface MovieViewController () <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (nonatomic, strong) NSArray *names;
 @property (nonatomic,strong) NSArray *movies;
+@property (weak, nonatomic) IBOutlet UIRefreshControl *refreshControl;
 
 @end
 
@@ -28,8 +28,6 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
     
-    self.names = @[@"A", @"B", @"C", @"D", @"E"];
-    
     
     MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
     hud.mode = MBProgressHUDModeAnnularDeterminate;
@@ -40,9 +38,6 @@
     
     NSURLRequest *request = [NSURLRequest requestWithURL:url];
     
-   // NSURLRequest *request =
-   // NSURLRequest *request = NSMutableURLRequest(URL: NSURL.URLWithString(RottenTomatoesURLString));
-  
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         
        
@@ -64,6 +59,46 @@
     [self.tableView registerNib:[UINib nibWithNibName:@"MovieCell" bundle:nil] forCellReuseIdentifier:@"MovieCell"];
     
     [MBProgressHUD hideHUDForView:self.view animated:YES];
+    
+    UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
+    [refreshControl addTarget:self action:@selector(reloadApi) forControlEvents:UIControlEventValueChanged];
+    self.refreshControl = refreshControl;
+    [self.tableView insertSubview:self.refreshControl atIndex:0];
+}
+
+-(void)reloadApi{
+    
+    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    hud.mode = MBProgressHUDModeAnnularDeterminate;
+    hud.labelText = @"Loading";
+
+    
+    NSURL *url = [NSURL URLWithString:@"http://api.rottentomatoes.com/api/public/v1.0/lists/dvds/top_rentals.json?apikey=4pq68yhq4dxszaw2hsdx53t5"];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    
+    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
+        
+        if (connectionError == nil){
+        
+        NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        
+        self.movies = responseDictionary[@"movies"];
+        
+        [self.tableView reloadData];
+        
+        NSLog(@"reloaded");
+        }
+        
+    }];
+    
+    [MBProgressHUD hideHUDForView:self.view animated:YES];
+    
+    [self.refreshControl endRefreshing];
+    
+    [self.tableView registerNib:[UINib nibWithNibName:@"MovieCell" bundle:nil] forCellReuseIdentifier:@"MovieCell"];
+    
+
     
 }
 
