@@ -2,7 +2,7 @@
 
 This is an IOS application for tip calculating.
 
-Time spent: 5 hours
+Time spent: 10 hours
 
 Completed user stories:
 
