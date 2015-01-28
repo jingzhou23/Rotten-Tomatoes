@@ -35,11 +35,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
     
-    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
-    hud.mode = MBProgressHUDModeAnnularDeterminate;
-    hud.labelText = @"Loading";
     
-   
     self.titleLabel.text = self.movie[@"title"];
     
     self.synosisLabel.text = self.movie[@"synopsis"];
@@ -47,22 +43,21 @@
     self.scrollView.contentSize = CGSizeMake(320, 1000);
     //self.scrollView.delegate = self;
     
-
+    
     NSString *url = [self.movie valueForKeyPath:@"posters.thumbnail"];
     
     NSString *urlOri = [url stringByReplacingOccurrencesOfString:@"tmb" withString:@"ori"];
-
+    
     NSLog(@"%@", urlOri);
     
     [self.posterView setImageWithURL:[NSURL URLWithString: urlOri]];
     
-    [MBProgressHUD hideHUDForView:self.view animated:YES];
     
     [self.scrollView addSubview:self.self.posterView];
     [self.scrollView addSubview:self.titleLabel];
-     [self.scrollView addSubview:self.synosisLabel];
-
-
+    [self.scrollView addSubview:self.synosisLabel];
+    
+    
     
 }
 

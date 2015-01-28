@@ -40,15 +40,28 @@
     
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         
-       
-        NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        if (connectionError == nil){
+            
+            self.title=@"Movies";
+            
+            NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+            
+            self.movies = responseDictionary[@"movies"];
+            
+            [self.tableView reloadData];
+            
+            NSLog(@"response: %@", responseDictionary);
+        }
+        else {
+            NSLog(@"reload failed");
+            self.movies = nil;
+            self.title=@"network error";
+            
+        }
         
-        self.movies = responseDictionary[@"movies"];
-        
-        [self.tableView reloadData];
-        
-        NSLog(@"response: %@", responseDictionary);
     }];
+    
+    [MBProgressHUD hideHUDForView:self.view animated:YES];
     
     self.tableView.dataSource = self;
     
@@ -58,7 +71,6 @@
     
     [self.tableView registerNib:[UINib nibWithNibName:@"MovieCell" bundle:nil] forCellReuseIdentifier:@"MovieCell"];
     
-    [MBProgressHUD hideHUDForView:self.view animated:YES];
     
     UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(reloadApi) forControlEvents:UIControlEventValueChanged];
@@ -71,7 +83,7 @@
     MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
     hud.mode = MBProgressHUDModeAnnularDeterminate;
     hud.labelText = @"Loading";
-
+    
     
     NSURL *url = [NSURL URLWithString:@"http://api.rottentomatoes.com/api/public/v1.0/lists/dvds/top_rentals.json?apikey=4pq68yhq4dxszaw2hsdx53t5"];
     
@@ -80,15 +92,22 @@
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         
         if (connectionError == nil){
-        
-        NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-        
-        self.movies = responseDictionary[@"movies"];
-        
-        [self.tableView reloadData];
-        
-        NSLog(@"reloaded");
+            
+            NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+            
+            self.movies = responseDictionary[@"movies"];
+            
+            [self.tableView registerNib:[UINib nibWithNibName:@"MovieCell" bundle:nil] forCellReuseIdentifier:@"MovieCell"];
+            
+            
+            NSLog(@"reloaded");
         }
+        else {
+            NSLog(@"reload failed");
+            self.movies = nil;
+            
+        }
+        
         
     }];
     
@@ -96,9 +115,10 @@
     
     [self.refreshControl endRefreshing];
     
-    [self.tableView registerNib:[UINib nibWithNibName:@"MovieCell" bundle:nil] forCellReuseIdentifier:@"MovieCell"];
+    [self.tableView reloadData];
     
-
+    
+    
     
 }
 
@@ -109,20 +129,29 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.movies.count;
+    if (self.movies == nil) return 0;
+    else return self.movies.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-    self.title=@"Movies";
-    
     MovieCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MovieCell"];
     
     NSDictionary *movies = self.movies[indexPath.row];
-    cell.titleLabel.text = movies[@"title"];
-    cell.synopsisLabel.text = movies[@"synopsis"];
-    [cell.imagePoster setImageWithURL:[NSURL URLWithString:[movies valueForKeyPath:@"posters.thumbnail"]]];
     
     
+    if (self.movies == nil) {
+        self.title=@"network error";
+        
+    }
+    
+    else {
+        self.title=@"Movies";
+        
+        cell.titleLabel.text = movies[@"title"];
+        cell.synopsisLabel.text = movies[@"synopsis"];
+        [cell.imagePoster setImageWithURL:[NSURL URLWithString:[movies valueForKeyPath:@"posters.thumbnail"]]];
+        
+    }
     return cell;
     
 }
